@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("viewer")
+  createdAt DateTime @default(now())
+}
+
+model MonthlyPermitLog {
+  id                Int      @id @default(autoincrement())
+  year              Int
+  month             String
+  department        String
+  permitsIssued     Int      @default(0)
+  permitsReceived   Int      @default(0)
+  permitsClosed     Int      @default(0)
+  permitsWithFaults Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([year, month, department])
+}
+
+model FaultTypeLog {
+  id        Int      @id @default(autoincrement())
+  year      Int
+  month     String
+  faultType String
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([year, month, faultType])
+}
