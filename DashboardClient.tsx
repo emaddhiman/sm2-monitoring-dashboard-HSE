@@ -4,7 +4,7 @@ import DepartmentTable from '@/components/panels/DepartmentTable'
 import ClosureVsFaultChart from '@/components/panels/ClosureVsFaultChart'
 import MonthFaultParetoChart from '@/components/panels/MonthFaultParetoChart'
 import YearToDateDeptParetoChart from '@/components/panels/YearToDateDeptParetoChart'
-import { FISCAL_MONTHS } from '@/lib/calculations'
+import DateSelector from '@/components/DateSelector'
 
 interface Props {
   initialMonth: string
@@ -13,7 +13,7 @@ interface Props {
 
 export default function DashboardClient({ initialMonth, initialYear }: Props) {
   const [selectedMonth, setSelectedMonth] = useState(initialMonth)
-  const [year] = useState(initialYear)
+  const [selectedYear, setSelectedYear] = useState(initialYear)
   const [data, setData] = useState<{
     deptRows: unknown[]
     yearTrend: unknown[]
@@ -24,11 +24,11 @@ export default function DashboardClient({ initialMonth, initialYear }: Props) {
 
   useEffect(() => {
     setLoading(true)
-    fetch(`/api/ptw?year=${year}&month=${selectedMonth}`)
+    fetch(`/api/ptw?year=${selectedYear}&month=${selectedMonth}`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [selectedMonth, year])
+  }, [selectedMonth, selectedYear])
 
   return (
     <div className="register-wrapper">
@@ -39,21 +39,15 @@ export default function DashboardClient({ initialMonth, initialYear }: Props) {
             Permit to Work Register
           </div>
           <div className="register-title-banner__controls">
-            <span className="register-title-banner__year-label">
-              FY {year}/{String(year + 1).slice(2)}
+            <span className="register-title-banner__year-label" style={{ fontWeight: 700, color: '#4472C4' }}>
+              FY {selectedYear}/{String(selectedYear + 1).slice(2)}
             </span>
-            <div className="month-selector">
-              <label htmlFor="month-select">Month:</label>
-              <select
-                id="month-select"
-                value={selectedMonth}
-                onChange={e => setSelectedMonth(e.target.value)}
-              >
-                {FISCAL_MONTHS.map(m => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </div>
+            <DateSelector
+              selectedYear={selectedYear}
+              selectedMonth={selectedMonth}
+              onYearChange={setSelectedYear}
+              onMonthChange={setSelectedMonth}
+            />
           </div>
         </div>
 
@@ -66,7 +60,7 @@ export default function DashboardClient({ initialMonth, initialYear }: Props) {
             {/* Top Left — Department Table */}
             <div className="register-panel">
               <div className="register-panel__header">
-                Department-wise PTW Register — {selectedMonth}
+                Department-wise PTW Register — {selectedMonth} {selectedYear}
               </div>
               <div className="register-panel__body">
                 <DepartmentTable rows={data.deptRows as Parameters<typeof DepartmentTable>[0]['rows']} />
@@ -76,7 +70,7 @@ export default function DashboardClient({ initialMonth, initialYear }: Props) {
             {/* Top Right — Closure vs Fault Trend */}
             <div className="register-panel">
               <div className="register-panel__header">
-                PTW Closure Vs Fault Pareto (Full Year)
+                PTW Closure Vs Fault Pareto (FY {selectedYear}/{String(selectedYear + 1).slice(2)})
               </div>
               <div className="register-panel__body">
                 <ClosureVsFaultChart data={data.yearTrend as Parameters<typeof ClosureVsFaultChart>[0]['data']} />
@@ -86,7 +80,7 @@ export default function DashboardClient({ initialMonth, initialYear }: Props) {
             {/* Bottom Left — Monthly Fault Pareto */}
             <div className="register-panel">
               <div className="register-panel__header">
-                Fault Pareto — {selectedMonth}
+                Fault Pareto — {selectedMonth} {selectedYear}
               </div>
               <div className="register-panel__body">
                 <MonthFaultParetoChart
@@ -99,7 +93,7 @@ export default function DashboardClient({ initialMonth, initialYear }: Props) {
             {/* Bottom Right — YTD Dept Pareto */}
             <div className="register-panel">
               <div className="register-panel__header">
-                Department Wise Fault Pareto — YTD
+                Department Wise Fault Pareto — YTD ({selectedYear})
               </div>
               <div className="register-panel__body">
                 <YearToDateDeptParetoChart
